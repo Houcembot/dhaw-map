@@ -260,7 +260,7 @@ function addDessalement() {
       })
     }
   });
-  console.log('dessalem-points source added');
+  console.log('dessalem source added');
 
   map.addLayer({
     id: 'dessalem-icon',
