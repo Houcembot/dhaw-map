@@ -241,6 +241,7 @@ function addMarques() {
 
 // --- Dessalement ---
 function addDessalement() {
+  console.log('addDessalem called');
   map.addSource('dessalement', {
     type: 'geojson',
     data: {
@@ -259,6 +260,7 @@ function addDessalement() {
       })
     }
   });
+  console.log('dessalement source added');
 
   map.addLayer({
     id: 'dessalem-icon',
@@ -272,6 +274,7 @@ function addDessalement() {
       'circle-stroke-color': '#fff'
     }
   });
+  console.log('dessalem-icon layer added');
 }
 
 // --- Nappes (polygones SASS + Djeffara) ---
