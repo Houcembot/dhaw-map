@@ -293,7 +293,7 @@ function addNappes() {
       'fill-opacity': 0.12,
       'fill-outline-color': '#f87171'
     }
-  );
+  });
 
   map.addLayer({
     id: 'nappes-line':
@@ -307,8 +307,8 @@ function addNappes() {
   });
 
   map.addLayer({
-    id: 'nappes-label':
-    type: 'symbol',
+    id: 'nappes-label',
+    type: 'symbol'
     source: 'nappes',
     layout: {
       'text-field': '{n}',
@@ -387,7 +387,7 @@ function setupLayersUI() {
         map.setLayoutProperty(id, el.checked ? 'visible' : 'none');
       });
     });
-  );
+  });
 }
 
 // --- UI: Faits révélateurs ---
