@@ -296,7 +296,7 @@ function addNappes() {
   });
 
   map.addLayer({
-    id: 'nappes-line',
+    id: 'nappes-line':
     type: 'line',
     source: 'nappes',
     paint: {
@@ -326,8 +326,9 @@ function addNappes() {
 
 // --- GRACE time series (choropleth sur Tunisie) ---
 function addGrace() {
-  // Create GeoJSON source
-  graceSource = new maplibregl.GeoJSONSource({
+  // Add GeoJSON source
+  map.addSource('grace', {
+    type: 'geojson',
     data: {
       type: 'FeatureCollection',
       features: [{
@@ -340,7 +341,6 @@ function addGrace() {
       }]
     }
   });
-  map.addSource('grace', graceSource);
 
   map.addLayer({
     id: 'grace-fill',
@@ -355,7 +355,7 @@ function addGrace() {
 
 function updateGraceYear(year) {
   const anom = GRACE.anomalies[year] || 0;
-  graceSource.setData({
+  map.getSource('grace').setData({
     type: 'FeatureCollection',
     features: [{
       type: 'Feature',
