@@ -9,7 +9,7 @@ async function init() {
     container: 'map',
     style: {
       version: 8,
-      glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
+      // Removed glyphs to see if it fixes the Unimplemented type: 4 error
       sources: {
         'cartodb': {
           type: 'raster',
@@ -242,7 +242,7 @@ function addMarques() {
 // --- Dessalement ---
 function addDessalement() {
   console.log('addDessalem called');
-  map.addSource('dessalement-points', {
+  map.addSource('dessalem', {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
@@ -265,7 +265,7 @@ function addDessalement() {
   map.addLayer({
     id: 'dessalem-icon',
     type: 'circle',
-    source: 'dessalement-points',
+    source: 'dessalem',
     paint: {
       'circle-radius': 8,
       'circle-color': '#c084fc',
