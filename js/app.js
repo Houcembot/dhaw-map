@@ -296,7 +296,7 @@ function addNappes() {
   });
 
   map.addLayer({
-    id: 'nappes-line':
+    id: 'nappes-line',
     type: 'line',
     source: 'nappes',
     paint: {
@@ -308,7 +308,7 @@ function addNappes() {
 
   map.addLayer({
     id: 'nappes-label',
-    type: 'symbol'
+    type: 'symbol',
     source: 'nappes',
     layout: {
       'text-field': '{n}',
