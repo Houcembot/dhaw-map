@@ -1,7 +1,7 @@
-// ===== APP PRINCIPAL — MapLibre GL + Scrollytelling minimal =====
-// Généré 2026-08-26 pour dhaw-map.pages.dev v2
+// ===== APP PRINCIPAL — MapLibre GL + Scrollytelling minimal ====
+// Généré 2026-08-27 pour dhaw-map.pages.dev v2 (corrigé)
 
-let map, graceLayer, graceSource, playing = false, playTimer = null;
+let map, graceSource, playing = false, playTimer = null;
 
 async function init() {
   // MapLibre GL
@@ -63,7 +63,6 @@ async function init() {
 }
 
 // --- OSM vector tiles (côtées + pays) ---
-// Utilisé CARTO dark basemap dans l'initialisation de la map
 function addOsmSource() {
   // Fond CARTO déjà chargé, rien à faire
 }
@@ -72,16 +71,26 @@ function addOsmSource() {
 function addPluieBarrages() {
   map.addSource('barrages', {
     type: 'geojson',
-    data: {type: 'FeatureCollection', features: BARRAGES.map(b => ({
-      type: 'Feature',
-      geometry: {type: 'Point', coordinates: [b.lon, b.lat]},
-      properties: {
-        nom: b.nom, cap: b.cap, gouv: b.gouv,
-        capNote: b.capNote || '',
-        pluie: PLUIE[b.nom]?.pluie,
-        et0moy: PLUIE[b.nom]?.et0moy
-      }
-    }))}
+    data: {
+      type: 'FeatureCollection',
+      features: BARRAGES.map(function(b) {
+        return {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [b.lon, b.lat]
+          },
+          properties: {
+            nom: b.nom,
+            cap: b.cap,
+            gouv: b.gouv,
+            capNote: b.capNote || '',
+            pluie: PLUIE[b.nom] ? PLUIE[b.nom].pluie : undefined,
+            et0moy: PLUIE[b.nom] ? PLUIE[b.nom].et0moy : undefined
+          }
+        };
+      })
+    }
   });
 
   // Cercles capacité
@@ -111,17 +120,34 @@ function addPluieBarrages() {
       'text-anchor': 'top',
       'text-allow-overlap': true
     },
-    paint: {'text-color': '#e2e9f1', 'text-halo-color': '#0b1017', 'text-halo-width': 2}
+    paint: {
+      'text-color': '#e2e9f1',
+      'text-halo-color': '#0b1017',
+      'text-halo-width': 2
+    }
   });
 
   // Surfaces Sidi Salem (time-enabled)
   map.addSource('salem-surface', {
     type: 'geojson',
-    data: {type: 'FeatureCollection', features: Object.entries(SALEM_SURFACE).map(([yr, d]) => ({
-      type: 'Feature',
-      properties: {year: parseInt(yr), km2: d.km2, pct: d.pct, date: d.date},
-      geometry: {type: 'Point', coordinates: [9.1667, 36.4833]}
-    }))}
+    data: {
+      type: 'FeatureCollection',
+      features: Object.entries(SALEM_SURFACE).map(function([yr, d]) {
+        return {
+          type: 'Feature',
+          properties: {
+            year: parseInt(yr),
+            km2: d.km2,
+            pct: d.pct,
+            date: d.date
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [9.1667, 36.4833]
+          }
+        };
+      })
+    }
   });
 
   map.addLayer({
@@ -134,8 +160,7 @@ function addPluieBarrages() {
       'circle-opacity': 0.7,
       'circle-stroke-width': 2,
       'circle-stroke-color': '#fff'
-    },
-    filter: ['==', ['get', 'year'], 2026]
+    }
   });
 
   map.addLayer({
@@ -148,8 +173,11 @@ function addPluieBarrages() {
       'text-size': 11,
       'text-offset': [0, -1.5]
     },
-    paint: {'text-color': '#fff', 'text-halo-color': '#0b1017', 'text-halo-width': 2},
-    filter: ['==', ['get', 'year'], 2026]
+    paint: {
+      'text-color': '#fff',
+      'text-halo-color': '#0b1017',
+      'text-halo-width': 2
+    }
   });
 }
 
@@ -157,14 +185,25 @@ function addPluieBarrages() {
 function addMarques() {
   map.addSource('marques', {
     type: 'geojson',
-    data: {type: 'FeatureCollection', features: MARQUES.map(m => ({
-      type: 'Feature',
-      geometry: {type: 'Point', coordinates: [m.lon, m.lat]},
-      properties: {
-        nom: m.nom, grp: m.grp, src: m.src,
-        approx: m.approx || false, sass: m.sass || false
-      }
-    }))}
+    data: {
+      type: 'FeatureCollection',
+      features: MARQUES.map(function(m) {
+        return {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [m.lon, m.lat]
+          },
+          properties: {
+            nom: m.nom,
+            grp: m.grp,
+            src: m.src,
+            approx: m.approx || false,
+            sass: m.sass || false
+          }
+        };
+      })
+    }
   });
 
   map.addLayer({
@@ -192,7 +231,11 @@ function addMarques() {
       'text-anchor': 'top',
       'text-allow-overlap': true
     },
-    paint: {'text-color': '#e2e9f1', 'text-halo-color': '#0b1017', 'text-halo-width': 1.5}
+    paint: {
+      'text-color': '#e2e9f1',
+      'text-halo-color': '#0b1017',
+      'text-halo-width': 1.5
+    }
   });
 }
 
@@ -200,17 +243,27 @@ function addMarques() {
 function addDessalement() {
   map.addSource('dessalement', {
     type: 'geojson',
-    data: {type: 'FeatureCollection', features: DESSALEMENT.map(d => ({
-      type: 'Feature',
-      geometry: {type: 'Point', coordinates: [d.lon, d.lat]},
-      properties: {nom: d.nom}
-    }))}
+    data: {
+      type: 'FeatureCollection',
+      features: DESSALEMENT.map(function(d) {
+        return {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [d.lon, d.lat]
+          },
+          properties: {
+            nom: d.nom
+          }
+        };
+      })
+    }
   });
 
   map.addLayer({
-    id: 'dessalement-icon',
+    id: 'dessalem-icon',
     type: 'circle',
-    source: 'dessalement',
+    source: 'dessalem',
     paint: {
       'circle-radius': 8,
       'circle-color': '#c084fc',
@@ -260,7 +313,11 @@ function addNappes() {
       'text-size': 10,
       'text-allow-overlap': true
     },
-    paint: {'text-color': '#f87171', 'text-halo-color': '#0b1017', 'text-halo-width': 2}
+    paint: {
+      'text-color': '#f87171',
+      'text-halo-color': '#0b1017',
+      'text-halo-width': 2
+    }
   });
 }
 
@@ -316,13 +373,16 @@ function setupLayersUI() {
     'l-pluie': ['barrages-cap', 'barrages-label', 'salem-surface-circle', 'salem-surface-label'],
     'l-barrages': ['barrages-cap', 'barrages-label'],
     'l-marques': ['marques-circle', 'marques-label'],
-    'l-dessalement': ['dessalement-icon'],
+    'l-dessalem': ['dessalem-icon'],
     'l-nappes': ['nappes-fill', 'nappes-line', 'nappes-label']
   };
-  Object.entries(toggles).forEach(([chkId, layerIds]) => {
+  Object.entries(toggles).forEach(function([chkId, layerIds]) {
     const el = document.getElementById(chkId);
-    el.addEventListener('change', () => {
-      layerIds.forEach(id => map.setLayoutProperty(id, 'visibility', el.checked ? 'visible' : 'none'));
+    if (!el) return;
+    el.addEventListener('change', function() {
+      layerIds.forEach(function(id) {
+        map.setLayoutProperty(id, el.checked ? 'visible' : 'none');
+      });
     });
   });
 }
@@ -331,16 +391,15 @@ function setupLayersUI() {
 function renderFacts() {
   const cont = document.getElementById('facts');
   cont.innerHTML = '';
-  FACTS.forEach((f, i) => {
+  FACTS.forEach(function(f, i) {
     const div = document.createElement('div');
     div.className = 'fact';
-    div.innerHTML = `
-      <div class="num ${f.cls}">${f.num}</div>
-      <div class="lbl">${f.lbl}</div>
-      <div class="src">Cliquer pour détails + sources →</div>
-      <div class="detail">${f.detail}</div>
-    `;
-    div.addEventListener('click', (e) => {
+    div.innerHTML = '' +
+      '<div class="num ' + f.cls + '">' + f.num + '</div>' +
+      '<div class="lbl">' + f.lbl + '</div>' +
+      '<div class="src">Cliquer pour détails + sources →</div>' +
+      '<div class="detail">' + f.detail + '</div>';
+    div.addEventListener('click', function(e) {
       // ne pas fermer si on clique sur un lien
       if (e.target.tagName === 'A') return;
       div.classList.toggle('open');
@@ -355,11 +414,11 @@ function setupTimebar() {
   const slider = document.getElementById('slider-year');
   const playBtn = document.getElementById('btn-play');
 
-  slider.addEventListener('input', (e) => {
+  slider.addEventListener('input', function(e) {
     updateGraceYear(parseInt(e.target.value));
   });
 
-  playBtn.addEventListener('click', () => {
+  playBtn.addEventListener('click', function() {
     if (playing) {
       stopPlay();
     } else {
@@ -376,7 +435,7 @@ function startPlay() {
   document.getElementById('btn-play').textContent = '⏸';
   const slider = document.getElementById('slider-year');
   let year = parseInt(slider.value);
-  playTimer = setInterval(() => {
+  playTimer = setInterval(function() {
     year++;
     if (year > 2026) year = 2004;
     slider.value = year;
@@ -400,53 +459,53 @@ function setupPopups() {
     let html = '<div class="pp">';
     if (layer.startsWith('barrages')) {
       const p = PLUIE[f.nom] || {};
-      html += `<b class="t">🏞️ ${f.nom}</b>`;
-      html += `<div class="row"><span class="k">Capacité :</span> ${f.cap} Mm³${f.capNote ? ' ('+f.capNote+')' : ''}</div>`;
-      html += `<div class="row"><span class="k">Gouvernorat :</span> ${f.gouv}</div>`;
+      html += '<b class="t">🏞️ ' + f.nom + '</b>';
+      html += '<div class="row"><span class="k">Capacité :</span> ' + f.cap + ' Mm³' + (f.capNote ? ' (' + f.capNote + ')' : '') + '</div>';
+      html += '<div class="row"><span class="k">Gouvernorat :</span> ' + f.gouv + '</div>';
       if (p.pluie) {
         const last = Object.entries(p.pluie).pop();
-        html += `<div class="row"><span class="k">Pluie ${last[0]} :</span> ${last[1]} mm</div>`;
-        html += `<div class="row"><span class="k">Évapo. moy. :</span> ${p.et0moy} mm/an</div>`;
+        html += '<div class="row"><span class="k">Pluie ' + last[0] + ' :</span> ' + last[1] + ' mm</div>';
+        html += '<div class="row"><span class="k">Évapo. moy. :</span> ' + p.et0moy + ' mm/an</div>';
         if (f.nom === 'Sidi Salem') {
-          html += `<div class="row"><span class="k">Surface 2019 :</span> 41 km² → 2026: 33 km² <span class="c-red">(-46%)</span></div>`;
+          html += '<div class="row"><span class="k">Surface 2019 :</span> 41 km² → 2026: 33 km² <span class="c-red">(-46%)</span></div>';
         }
       }
     } else if (layer === 'marques-circle' || layer === 'marques-label') {
       const c = GRP_COLORS[f.grp] || '#38bdf8';
-      html += `<b class="t" style="color:${c}">🍾 ${f.nom}</b>`;
-      html += `<div class="row"><span class="k">Groupe :</span> <span style="color:${c}">${GRP_NAMES[f.grp]}</span></div>`;
-      html += `<div class="row"><span class="k">Source déclarée :</span> ${f.src}</div>`;
-      if (f.sass) html += `<div class="row c-red">⚠️ Puisée dans la nappe fossile SASS</div>`;
-      if (f.approx) html += `<div class="row c-amber">⚠️ Position approximative</div>`;
-    } else if (layer === 'dessalement-icon') {
-      html += `<b class="t">🏭 ${f.nom}</b>`;
-      html += `<div class="row"><span class="k">Projet :</span> Usine de dessalement d'eau de mer (planifiée MARHP 2017)</div>`;
+      html += '<b class="t" style="color:' + c + '">🍾 ' + f.nom + '</b>';
+      html += '<div class="row"><span class="k">Groupe :</span> <span style="color:' + c + '">' + GRP_NAMES[f.grp] + '</span></div>';
+      html += '<div class="row"><span class="k">Source déclarée :</span> ' + f.src + '</div>';
+      if (f.sass) html += '<div class="row c-red">⚠️ Puisée dans la nappe fossile SASS</div>';
+      if (f.approx) html += '<div class="row c-amber">⚠️ Position approximative</div>';
+    } else if (layer === 'dessalem-icon') {
+      html += '<b class="t">🏭 ' + f.nom + '</b>';
+      html += '<div class="row"><span class="k">Projet :</span> Usine de dessalement d\'eau de mer (planifiée MARHP 2017)</div>';
     } else if (layer === 'nappes-fill' || layer === 'nappes-line') {
-      html += `<b class="t">💧 ${f.n}</b>`;
-      if (f.surexp) html += `<div class="row"><span class="k">Surexploitation :</span> <span class="c-red">${f.surexp} recharge</span></div>`;
+      html += '<b class="t">💧 ' + f.n + '</b>';
+      if (f.surexp) html += '<div class="row"><span class="k">Surexploitation :</span> <span class="c-red">' + f.surexp + ' recharge</span></div>';
     }
     html += '</div>';
     popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
   }
 
-  const interactiveLayers = ['barrages-cap', 'marques-circle', 'dessalement-icon', 'nappes-fill'];
-  interactiveLayers.forEach(id => {
-    map.on('click', id, (e) => showPopup(e, id, e.features[0].properties));
-    map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; popup.remove(); });
+  const interactiveLayers = ['barrages-cap', 'marques-circle', 'dessalem-icon', 'nappes-fill'];
+  interactiveLayers.forEach(function(id) {
+    map.on('click', id, function(e) { showPopup(e, id, e.features[0].properties); });
+    map.on('mouseenter', id, function() { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', id, function() { map.getCanvas().style.cursor = ''; popup.remove(); });
   });
 
   // Salem surface
-  map.on('click', 'salem-surface-circle', (e) => {
+  map.on('click', 'salem-surface-circle', function(e) {
     const f = e.features[0].properties;
-    const html = `<div class="pp"><b class="t">🏞️ Sidi Salem — ${f.year}</b>
-      <div class="row"><span class="k">Surface d'eau :</span> ${f.km2} km² (${f.pct}% du max)</div>
-      <div class="row"><span class="k">Date image :</span> ${f.date || 'Sentinel-2'}</div>
-      <div class="row"><span class="k">Tendance :</span> <span class="c-red">−46% depuis 2019</span></div></div>`;
+    const html = '<div class="pp"><b class="t">🏞️ Sidi Salem — ' + f.year + '</b>' +
+      '<div class="row"><span class="k">Surface d\'eau :</span> ' + f.km2 + ' km² (' + f.pct + '% du max)</div>' +
+      '<div class="row"><span class="k">Date image :</span> ' + (f.date || 'Sentinel-2') + '</div>' +
+      '<div class="row"><span class="k">Tendance :</span> <span class="c-red">−46% depuis 2019</span></div></div>';
     popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
   });
-  map.on('mouseenter', 'salem-surface-circle', () => map.getCanvas().style.cursor = 'pointer');
-  map.on('mouseleave', 'salem-surface-circle', () => { map.getCanvas().style.cursor = ''; popup.remove(); });
+  map.on('mouseenter', 'salem-surface-circle', function() { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'salem-surface-circle', function() { map.getCanvas().style.cursor = ''; popup.remove(); });
 }
 
 // --- Langue FR/AR ---
