@@ -242,7 +242,7 @@ function addMarques() {
 // --- Dessalement ---
 function addDessalement() {
   console.log('addDessalem called');
-  map.addSource('dessalement', {
+  map.addSource('dessalement-points', {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
@@ -260,12 +260,12 @@ function addDessalement() {
       })
     }
   });
-  console.log('dessalement source added');
+  console.log('dessalem-points source added');
 
   map.addLayer({
     id: 'dessalem-icon',
     type: 'circle',
-    source: 'dessalem',
+    source: 'dessalement-points',
     paint: {
       'circle-radius': 8,
       'circle-color': '#c084fc',
