@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>وينو الماء؟ Où est passée l'eau ? — Tunisie</title>
+<meta name="description" content="La carte interactive de l'eau en Tunisie : pluie, barrages, nappes, fuites, bouteilles. Chiffres sourcés et vérifiables.">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.js"></script>
+<style>
+:root{--bg:#0b1017;--card:#121a26;--card2:#1a2433;--line:#253346;--txt:#e2e9f1;--mut:#93a1b5;
+--blue:#38bdf8;--cyan:#22d3ee;--red:#f87171;--amber:#fbbf24;--green:#34d399;--purple:#c084fc;
+--violet:#a78bfa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',Roboto,'Noto Sans Arabic',sans-serif}
+#map{position:absolute;inset:0;z-index:0}
+
+/* ===== HEADER minimal ===== */
+#brand{position:absolute;top:10px;left:10px;z-index:100;background:rgba(18,26,38,.95);backdrop-filter:blur(12px);
+border:1px solid var(--line);border-radius:14px;padding:10px 16px;box-shadow:0 6px 28px rgba(0,0,0,.45)}
+#brand h1{font-size:1.05rem;font-weight:800;color:var(--cyan)}
+#brand h1 .ar{color:var(--txt);font-weight:700;margin-right:6px}
+#brand p{font-size:.68rem;color:var(--mut);margin-top:2px}
+
+/* ===== COUCHES (gauche bas) ===== */
+#layers{position:absolute;left:10px;bottom:14px;z-index:100;background:rgba(18,26,38,.95);
+backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;padding:10px 12px;
+display:flex;flex-direction:column;gap:5px;max-height:46vh;overflow:auto}
+#layers .t{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.07em}
+.lay{display:flex;align-items:center;gap:7px;font-size:.76rem;cursor:pointer;user-select:none;padding:2px 0}
+.lay input{accent-color:var(--cyan);width:14px;height:14px}
+.lay .ic{width:16px;text-align:center;flex-shrink:0}
+
+/* ===== CHIFFRES REVELATEURS (bas droite) ===== */
+#facts{position:absolute;right:10px;bottom:64px;z-index:100;width:min(330px,calc(100vw-20px));
+display:flex;flex-direction:column;gap:7px;max-height:52vh;overflow:auto}
+.fact{background:rgba(18,26,38,.96);backdrop-filter:blur(12px);border:1px solid var(--line);
+border-radius:13px;padding:9px 13px;cursor:pointer;transition:border-color .15s}
+.fact:hover{border-color:var(--cyan)}
+.fact .num{font-size:1.35rem;font-weight:800;line-height:1.05}
+.fact .lbl{font-size:.74rem;color:var(--txt);margin-top:2px;line-height:1.35}
+.fact .src{font-size:.62rem;color:var(--mut);margin-top:3px;display:none}
+.fact.open .detail{display:block}
+.fact .detail{display:none;font-size:.72rem;color:var(--txt);line-height:1.5;margin-top:6px;
+border-top:1px solid var(--line);padding-top:6px}
+.fact .detail a{color:var(--blue)}
+.c-red{color:var(--red)} .c-amber{color:var(--amber)} .c-blue{color:var(--blue)} .c-purple{color:var(--purple)} .c-green{color:var(--green)}
+
+/* ===== POPUP ===== */
+.maplibregl-popup-content{background:var(--card)!important;border:1px solid var(--line);
+border-radius:12px;color:var(--txt)!important;font-size:.8rem;line-height:1.5;padding:12px 14px!important;
+max-width:290px;box-shadow:0 10px 40px rgba(0,0,0,.55)}
+.maplibregl-popup-tip{background:var(--card)!important}
+.pp b.t{font-size:.92rem;color:var(--cyan)}
+.pp .row{margin-top:4px}.pp .k{color:var(--mut)}
+.pp a{color:var(--blue)}
+
+/* ===== SLIDER TEMPOREL ===== */
+#timebar{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:100;
+background:rgba(18,26,38,.96);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;
+padding:8px 16px;display:none;align-items:center;gap:12px;width:min(480px,calc(100vw - 130px))}
+#timebar.on{display:flex}
+#timebar .yr{font-size:1.3rem;font-weight:800;color:var(--amber);min-width:52px;text-align:center}
+#timebar input[type=range]{flex:1;accent-color:var(--amber)}
+#timebar .play{background:var(--amber);border:none;color:#000;width:30px;height:30px;border-radius:50%;
+cursor:pointer;font-size:.85rem}
+
+@media(max-width:720px){
+#brand p{display:none}
+#layers{max-height:32vh;font-size:.72rem}
+.fact .num{font-size:1.1rem}
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="brand">
+  <h1><span class="ar">وينو الماء؟</span> 💧 Où est passée l'eau ?</h1>
+  <p>Carte indépendante — satellites NASA/ESA + chiffres officiels tunisiens · sources cliquables</p>
+</div>
+
+<div id="layers">
+  <div class="t">Calques / الطبقات</div>
+  <label class="lay"><input type="checkbox" id="l-pluie" checked><span class="ic">🌧️</span> Pluie & évaporation (barrages)</label>
+  <label class="lay"><input type="checkbox" id="l-barrages" checked><span class="ic">🏞️</span> Barrages (37)</label>
+  <label class="lay"><input type="checkbox" id="l-marques" checked><span class="ic">🍾</span> Eau en bouteille (22 sources)</label>
+  <label class="lay"><input type="checkbox" id="l-dessalement"><span class="ic">🏭</span> Dessalement (5 projets mer)</label>
+  <label class="lay"><input type="checkbox" id="l-nappes"><span class="ic">💧</span> Grandes nappes du Sud</label>
+</div>
+
+<div id="timebar">
+  <button class="play" id="btn-play">▶</button>
+  <span class="yr" id="cur-year">2026</span>
+  <input type="range" id="slider-year" min="2004" max="2026" value="2026">
+  <span style="font-size:.66rem;color:var(--mut)">Eau nationale (NASA)<br><b id="grace-val" style="color:var(--red)">— cm</b></span>
+</div>
+
+<div id="facts">
+  <!-- Les faits sont injectés par JS depuis FACTS -->
+</div>
+
+<script src="data/site_data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
